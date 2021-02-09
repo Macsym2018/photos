@@ -1,0 +1,7 @@
+photos.form:
+  path: '/dummy-photos'
+  defaults:
+    _title: 'Photos form'
+    _form: '\Drupal\photos\Form\PhotosForm'
+  requirements:
+    _access: 'TRUE'
