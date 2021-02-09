@@ -69,6 +69,7 @@ class PhotosForm extends FormBase {
     $form['userid'] = [
       '#type' => 'textfield',
       '#title' => 'User ID',
+      '#validated' => TRUE,
       '#ajax' => [
         'wrapper' => 'loanduration-wrapper',
         'callback' => [$this, 'createAlbumsList'],
@@ -85,10 +86,20 @@ class PhotosForm extends FormBase {
     $form['album'] = [
       '#type' => 'select',
       '#title' => 'Select Album',
-      '#suffix' => '<div class="dummy-photos"></div>',
-      '#options' => isset($albums) ? $albums : '',
+      '#validated' => TRUE,
+      '#ajax' => [
+        'wrapper' => 'dummy-photos',
+        'callback' => [$this, 'createPhotosPreview'],
+        'event' => 'change',
+        'progress' => [
+          'type' => 'throbber',
+          'message' => $this->t('Please wait'),
+        ],
+      ],
+      '#suffix' => '<div class="dummy-photos"></div></div>',
+      '#options' => ['default' => $this->t('Select')],
       '#prefix' => '<div id="loanduration-wrapper">',
-      '#suffix' => '</div>',
+
     ];
 
     return $form;
@@ -116,9 +127,12 @@ class PhotosForm extends FormBase {
       else {
 
         $userId = $value;
-        $albums = $this->httpClient->getAlbumsByUserId($userId);
+        $albums = ['default' => $this->t('Select')];
+        $albums += $this->httpClient->getAlbumsByUserId($userId);
+        // $albums += ['default' => $this->t('Select')];
         $form['album']['#options'] = $albums;
-
+        $form_state->setValue('album','default');
+        $form_state->setRebuild(true);
         return $form['album'];
         // $response->addCommand(new HtmlCommand('.error-messages', ''));
         // $response->addCommand(new HtmlCommand('.error-messages',
@@ -131,13 +145,21 @@ class PhotosForm extends FormBase {
     return $response;
   }
 
+  public function createPhotosPreview() {
+    $response = new AjaxResponse();
+    $response->addCommand(new HtmlCommand('.error-messages', 'It is not a number'));
+    return $response;
+  }
+
   /**
    * {@inheritdoc}
    */
-  /*public function validateForm(array &$form, FormStateInterface $form_state)
+  public function validateForm(array &$form, FormStateInterface $form_state)
   {
+    // parent::validateForm( $form, $form_state);
 
-  }*/
+    return true;
+  }
 
   /**
    * {@inheritdoc}
