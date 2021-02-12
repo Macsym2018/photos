@@ -128,11 +128,18 @@ class PhotosForm extends FormBase {
 
         $userId = $value;
         $albums = ['default' => $this->t('Select')];
-        $albums += $this->httpClient->getAlbumsByUserId($userId);
+
+        $almumsCurrentUser = $this->httpClient->getAlbumsByUserId($userId);
+        if ($almumsCurrentUser) {
+          $albums += $almumsCurrentUser;
+        }
+        else {
+          $response->addCommand(new HtmlCommand('.error-messages', 'Albums with this user ID not found'));
+        }
         // $albums += ['default' => $this->t('Select')];
         $form['album']['#options'] = $albums;
-        $form_state->setValue('album','default');
-        $form_state->setRebuild(true);
+        $form_state->setValue('album', 'default');
+        $form_state->setRebuild(TRUE);
         return $form['album'];
         // $response->addCommand(new HtmlCommand('.error-messages', ''));
         // $response->addCommand(new HtmlCommand('.error-messages',
@@ -145,20 +152,42 @@ class PhotosForm extends FormBase {
     return $response;
   }
 
-  public function createPhotosPreview() {
+  /**
+   * Show phoots from album.
+   *
+   * @param array $form
+   *   Current form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The complete form array.
+   *
+   * @return Drupal\Core\Ajax\AjaxResponse
+   *   Return Ajax response.
+   */
+  public function createPhotosPreview(array &$form, FormStateInterface $form_state) {
     $response = new AjaxResponse();
-    $response->addCommand(new HtmlCommand('.error-messages', 'It is not a number'));
+    $albumId = $form['album']['#value'];
+    $photos = $this->httpClient->getAlbumPhotos($albumId);
+
+    if ($photos) {
+      foreach ($photos as $photo) {
+        $render .= '<h1>' . $photo['title'] . '</h1>';
+        $render .= '<img src=' . $photo['url'] . '>';
+      }
+
+      $response->addCommand(new HtmlCommand('.dummy-photos', $render));
+    }
+    else {
+      $response->addCommand(new HtmlCommand('.error-messages', 'Photos with this album ID not found'));
+    }
+
     return $response;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function validateForm(array &$form, FormStateInterface $form_state)
-  {
-    // parent::validateForm( $form, $form_state);
-
-    return true;
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    parent::validateForm($form, $form_state);
   }
 
   /**

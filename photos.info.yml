@@ -3,3 +3,5 @@ description: Show photos depend on selected list of album
 type: module
 core: 8.x
 pakage: 'Custom'
+libraries:
+  - photos/global-styling

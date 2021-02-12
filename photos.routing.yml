@@ -5,3 +5,11 @@ photos.form:
     _form: '\Drupal\photos\Form\PhotosForm'
   requirements:
     _access: 'TRUE'
+
+photos.content:
+  path: 'dummy-photos-example'
+  defaults:
+    _controller: '\Drupal\photos\Controller\PhotosController::content'
+    _title: 'Albums&Photos'
+  requirements:
+    _permission: 'access content'
